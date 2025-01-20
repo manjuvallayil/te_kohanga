@@ -172,8 +172,8 @@ def upload_audio():
 
             # Append results
             transcriptions.append(
-                f"Transcription: {transcription}, \n"
-                f"Translation to English: {translation}, \n"
+                f"Transcription: {transcription}, \n\n"
+                f"Context: {translation}, \n"
             )
 
         # Join all transcriptions if multiple files are uploaded
@@ -227,5 +227,4 @@ def simulate_audio():
     return Response(generate(), content_type='application/json')
 
 if __name__ == '__main__':
-    #app.run(host="0.0.0.0", port=50000, debug=True)
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(host="0.0.0.0", port=50000)
