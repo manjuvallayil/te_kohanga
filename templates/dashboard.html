@@ -1,0 +1,123 @@
+{% extends 'layout.html' %}
+
+{% block title -%}Real-Time Audio Processing - Te Kōhanga{%- endblock %}
+{% block page_name -%}Real-Time Audio Processing{%- endblock %}
+{% block breadcrumb -%}ASR and Emotion Detection - Real-Time Processing{%- endblock %}
+
+{% block main %}
+<div class="container mt-4">
+    <!-- Record and Process Audio -->
+    <div id="recordFormCard" class="card text-center mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h4>Allow Listening for ASR and Emotion Detection</h4>
+        </div>
+        <div class="card-body">
+            <button id="recordButton" class="btn btn-secondary">Allow Listening</button>
+            <button id="stopButton" class="btn btn-secondary" disabled>Stop Listening</button>
+        </div>
+    </div>
+
+    <!-- Processing State -->
+    <div id="processingState" class="text-center mt-3" style="display: none;">
+        <h5>Processing Your Audio...</h5>
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div id="resultCard" class="card shadow mt-4" style="display: none;">
+        <div class="card-header bg-success text-white text-center">
+            <h5>Results</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="transcriptionOutput" class="form-label">ASR Results:</label>
+                <textarea id="transcriptionOutput" rows="5" class="form-control" readonly></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="emotionOutput" class="form-label">Detected Emotion:</label>
+                <textarea id="emotionOutput" rows="1" class="form-control" readonly></textarea>
+            </div>
+            <div class="text-center">
+                <button id="testAgainButton" class="btn btn-secondary">Test Again</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script_function %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const recordButton = document.getElementById('recordButton');
+        const stopButton = document.getElementById('stopButton');
+        const processingState = document.getElementById('processingState');
+        const resultCard = document.getElementById('resultCard');
+        const transcriptionOutput = document.getElementById('transcriptionOutput');
+        const emotionOutput = document.getElementById('emotionOutput');
+        const testAgainButton = document.getElementById('testAgainButton');
+        let mediaRecorder;
+        let audioChunks = [];
+
+        recordButton.addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const formData = new FormData();
+                    formData.append('audio', audioBlob, 'audio.webm');
+
+                    // Show processing state
+                    processingState.style.display = 'block';
+
+                    try {
+                        const response = await fetch('/record-and-process', {
+                            method: 'POST',
+                            body: formData,
+                        });
+                        const result = await response.json();
+
+                        transcriptionOutput.value = result.transcription || 'No transcription available.';
+                        emotionOutput.value = result.emotion || 'No emotion detected.';
+
+                        // Show results
+                        processingState.style.display = 'none';
+                        resultCard.style.display = 'block';
+                    } catch (error) {
+                        console.error('Error processing audio:', error);
+                        alert('An error occurred while processing the audio.');
+                        processingState.style.display = 'none';
+                    }
+                };
+
+                audioChunks = [];
+                mediaRecorder.start();
+                recordButton.disabled = true;
+                stopButton.disabled = false;
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+                alert('Unable to access microphone. Please check your permissions.');
+            }
+        });
+
+        stopButton.addEventListener('click', () => {
+            mediaRecorder.stop();
+            recordButton.disabled = false;
+            stopButton.disabled = true;
+        });
+
+        testAgainButton.addEventListener('click', () => {
+            resultCard.style.display = 'none';
+            transcriptionOutput.value = '';
+            emotionOutput.value = '';
+        });
+    });
+</script>
+{% endblock %}

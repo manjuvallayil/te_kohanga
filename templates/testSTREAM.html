@@ -1,0 +1,132 @@
+{% extends 'layout.html' %}
+
+{% block title -%}Online Audio Simulation - Te Kōhanga{%- endblock %}
+{% block page_name -%}Online Audio Simulation{%- endblock %}
+{% block breadcrumb -%}ASR and Emotion Detection - Online Audio Simulation{%- endblock %}
+
+{% block main %}
+<div class="container mt-4">
+    <!-- Real-Time Simulation Upload Form -->
+    <div id="simulationFormCard" class="card text-center mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h4>Upload Your Audio File for Real-Time ASR and Emotion Detection</h4>
+        </div>
+        <div class="card-body">
+            <form id="audioSimulationForm">
+                <label for="audioFile" class="form-label">Select Audio File</label>
+                <input type="file" id="audioFile" name="file" class="form-control"/>
+                <br>
+                <button id="simulateButton" class="btn btn-secondary" type="submit">Simulate Streaming</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Processing State -->
+    <div id="processingState" class="text-center mt-3" style="display: none;">
+        <h5>Processing Your Audio...</h5>
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Real-Time Results -->
+    <div id="resultCard" class="card shadow mb-4" style="display: none;">
+        <div class="card-header bg-success text-white text-center">
+            <h5>Real-Time Results</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="transcriptionOutput" class="form-label">ASR Results:</label>
+                <textarea id="transcriptionOutput" rows="5" class="form-control" readonly></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="emotionOutput" class="form-label">Detected Emotion:</label>
+                <textarea id="emotionOutput" rows="1" class="form-control" readonly></textarea>
+            </div>
+            <div class="text-center">
+                <button id="testAgainButton" class="btn btn-secondary">Test Again</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script_function %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const audioSimulationForm = document.getElementById('audioSimulationForm');
+        const simulateButton = document.getElementById('simulateButton');
+        const resultCard = document.getElementById('resultCard');
+        const processingState = document.getElementById('processingState');
+        const transcriptionOutput = document.getElementById('transcriptionOutput');
+        const emotionOutput = document.getElementById('emotionOutput');
+        const testAgainButton = document.getElementById('testAgainButton');
+
+        audioSimulationForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const file = document.getElementById('audioFile').files[0];
+            if (!file) {
+                alert("Please select an audio file.");
+                return;
+            }
+
+            // Show processing state
+            audioSimulationForm.style.display = 'none';
+            processingState.style.display = 'block';
+            resultCard.style.display = 'none';
+
+            // Prepare FormData
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/simulate-audio', {
+                    method: 'POST',
+                    body: formData,
+                });
+                const reader = response.body.getReader();
+
+                transcriptionOutput.value = '';
+                emotionOutput.value = '';
+
+                resultCard.style.display = 'block';
+                processingState.style.display = 'none';
+
+                const decoder = new TextDecoder();
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunkData = decoder.decode(value).trim();
+                    const jsonObjects = chunkData.split('\n').filter(Boolean);
+
+                    for (const jsonObject of jsonObjects) {
+                        try {
+                            const parsedData = JSON.parse(jsonObject);
+                            if (parsedData.transcription) {
+                                transcriptionOutput.value += parsedData.transcription + '\n';
+                            }
+                            if (parsedData.emotion) {
+                                emotionOutput.value = parsedData.emotion;
+                            }
+                        } catch (error) {
+                            console.error('Error parsing JSON:', error, jsonObject);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error processing the audio.');
+            }
+        });
+
+        testAgainButton.addEventListener('click', () => {
+            transcriptionOutput.value = '';
+            emotionOutput.value = '';
+            audioSimulationForm.style.display = 'block';
+            resultCard.style.display = 'none';
+            audioSimulationForm.reset();
+        });
+    });
+</script>
+{% endblock %}

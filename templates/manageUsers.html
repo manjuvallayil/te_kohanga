@@ -1,0 +1,52 @@
+{% extends 'layout.html' %}
+
+{% block title -%}Manage Users - My Page{%- endblock %}
+{% block page_name -%}Manage Users{%- endblock %}
+{% block breadcrumb -%}Manage Users{%- endblock %}
+
+{% block script_function %}{% endblock %}
+
+{% block main %}
+<div class="container mt-4">
+    <h3>Manage Users</h3>
+    <p class="text-muted">Use this page to view, add, edit, or delete users in the system.</p>
+
+    <div class="card shadow">
+        <div class="card-header bg-secondary text-white">
+            <h5>User Management</h5>
+        </div>
+        <div class="card-body">
+            <form id="searchForm" class="mb-4">
+                <div class="form-group">
+                    <label for="searchUser" class="form-label">Search User</label>
+                    <input type="text" id="searchUser" class="form-control" placeholder="Enter username, email, or role">
+                </div>
+                <button class="btn btn-secondary mt-2" type="submit">Search</button>
+            </form>
+
+            <div class="text-center">
+                <button class="btn btn-primary mb-3" id="addUserButton">Add New User</button>
+            </div>
+
+            <div id="userTable" class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>User ID</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="5" class="text-center">No users found. Use the search above or add a new user.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

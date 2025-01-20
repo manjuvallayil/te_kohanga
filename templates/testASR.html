@@ -1,0 +1,116 @@
+{% extends 'layout.html' %}
+
+{% block title -%}Offline Audio - Te Kōhanga{%- endblock %}
+{% block page_name -%}Offline Audio{%- endblock %}
+{% block breadcrumb -%}ASR and Emotion Detection - Offline Audio Data{%- endblock %}
+
+{% block main %}
+<div class="container mt-4">
+    <!-- Upload Form and Results -->
+    <div id="uploadFormCard" class="card text-center mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h4>Upload Audio File for ASR and Emotion Detection</h4>
+        </div>
+        <div class="card-body">
+            <!-- Upload Form -->
+            <form id="audioUploadForm">
+                <div class="form-group">
+                    <label for="audioFile" class="form-label">Choose Audio File</label>
+                    <input type="file" id="audioFile" name="files[]" class="form-control" multiple />
+                </div>
+                <br>
+                <button id="submitButton" class="btn btn-secondary w-30" type="submit">Upload File to Test</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Processing State -->
+    <div id="processingState" class="text-center mt-3" style="display: none;">
+        <h5>Processing Your Audio...</h5>
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div id="resultCard" class="card shadow mt-4" style="display: none;">
+        <div class="card-header bg-success text-white text-center">
+            <h5>Results</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="transcriptionOutput" class="form-label">ASR Results:</label>
+                <textarea id="transcriptionOutput" rows="5" class="form-control" readonly></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="emotionOutput" class="form-label">Detected Emotion:</label>
+                <textarea id="emotionOutput" rows="1" class="form-control" readonly></textarea>
+            </div>
+            <div class="text-center">
+                <button id="testAgainButton" class="btn btn-secondary">Test Again</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script_function %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const audioUploadForm = document.getElementById('audioUploadForm');
+        const processingState = document.getElementById('processingState');
+        const resultCard = document.getElementById('resultCard');
+        const transcriptionOutput = document.getElementById('transcriptionOutput');
+        const emotionOutput = document.getElementById('emotionOutput');
+        const testAgainButton = document.getElementById('testAgainButton');
+        const submitButton = document.getElementById('submitButton');
+
+        // Handle Form Submission
+        audioUploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const files = document.getElementById('audioFile').files;
+            if (!files.length) {
+                alert("Please select a file to upload.");
+                return;
+            }
+
+            // Show Processing State
+            audioUploadForm.style.display = 'none';
+            processingState.style.display = 'block';
+            resultCard.style.display = 'none';
+
+            const formData = new FormData();
+            Array.from(files).forEach(file => formData.append('files', file));
+
+            try {
+                const response = await fetch('/upload-audio', {
+                    method: 'POST',
+                    body: formData,
+                });
+                const data = await response.json();
+
+                // Populate Results
+                transcriptionOutput.value = data.transcription || 'No transcription available.';
+                emotionOutput.value = data.emotion || 'No emotion detected.';
+
+                // Show Results
+                processingState.style.display = 'none';
+                resultCard.style.display = 'block';
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error occurred. Please try again.');
+                processingState.style.display = 'none';
+            } 
+        });
+
+        // Reset Form for New Test
+        testAgainButton.addEventListener('click', () => {
+            resultCard.style.display = 'none';
+            transcriptionOutput.value = '';
+            emotionOutput.value = '';
+            audioUploadForm.style.display = '';
+            audioUploadForm.reset(); // Reset the form, including the file input field
+        });
+    });
+</script>
+{% endblock %}
