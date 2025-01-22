@@ -1,6 +1,6 @@
 {% extends 'layout.html' %}
 
-{% block title -%}Real-Time Audio Processing - Te Kōhanga{%- endblock %}
+{% block title -%} Real-Time Audio Processing - Te Kōhanga{%- endblock %}
 {% block page_name -%}Real-Time Audio Processing{%- endblock %}
 {% block breadcrumb -%}ASR and Emotion Detection - Real-Time Processing{%- endblock %}
 
@@ -9,11 +9,16 @@
     <!-- Record and Process Audio -->
     <div id="recordFormCard" class="card text-center mb-4">
         <div class="card-header bg-secondary text-white">
-            <h4>Allow Listening for ASR and Emotion Detection</h4>
+            <h4> 🎙️ Allow Listening for ASR and Emotion Detection</h4> 
         </div>
         <div class="card-body">
-            <button id="recordButton" class="btn btn-secondary">Allow Listening</button>
+            <!-- Common Label -->
+            <p class="form-label"> Control Microphone Access for Real-Time Processing</p>
+            <br>
+            <!-- Buttons -->
+            <button id="recordButton" class="btn btn-secondary">🎙️ Allow Listening</button>
             <button id="stopButton" class="btn btn-secondary" disabled>Stop Listening</button>
+            <br>
         </div>
     </div>
 
@@ -50,6 +55,7 @@
 {% block script_function %}
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        const recordFormCard = document.getElementById('recordFormCard');
         const recordButton = document.getElementById('recordButton');
         const stopButton = document.getElementById('stopButton');
         const processingState = document.getElementById('processingState');
@@ -76,6 +82,7 @@
 
                     // Show processing state
                     processingState.style.display = 'block';
+                    recordFormCard.style.display = 'none'; // Hide Allow Listening
 
                     try {
                         const response = await fetch('/record-and-process', {
@@ -117,6 +124,7 @@
             resultCard.style.display = 'none';
             transcriptionOutput.value = '';
             emotionOutput.value = '';
+            recordFormCard.style.display = 'block'; // Show the Allow Listening section again
         });
     });
 </script>

@@ -71,7 +71,7 @@
             }
 
             // Show processing state
-            audioSimulationForm.style.display = 'none';
+            simulationFormCard.style.display = 'none';
             processingState.style.display = 'block';
             resultCard.style.display = 'none';
 
@@ -123,9 +123,9 @@
         testAgainButton.addEventListener('click', () => {
             transcriptionOutput.value = '';
             emotionOutput.value = '';
-            audioSimulationForm.style.display = 'block';
+            simulationFormCard.style.display = 'block';
             resultCard.style.display = 'none';
-            audioSimulationForm.reset();
+            simulationFormCard.reset();
         });
     });
 </script>

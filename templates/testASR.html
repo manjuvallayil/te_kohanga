@@ -75,7 +75,7 @@
             }
 
             // Show Processing State
-            audioUploadForm.style.display = 'none';
+            uploadFormCard.style.display = 'none';
             processingState.style.display = 'block';
             resultCard.style.display = 'none';
 
@@ -108,8 +108,8 @@
             resultCard.style.display = 'none';
             transcriptionOutput.value = '';
             emotionOutput.value = '';
-            audioUploadForm.style.display = '';
-            audioUploadForm.reset(); // Reset the form, including the file input field
+            uploadFormCard.style.display = '';
+            uploadFormCard.reset(); // Reset the form, including the file input field
         });
     });
 </script>
